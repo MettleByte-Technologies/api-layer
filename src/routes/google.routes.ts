@@ -117,7 +117,7 @@ router.get("/calendars", GoogleController.getCalendars);
  *         name: calendarId
  *         schema:
  *           type: string
- *         description: Calendar ID (default: primary)
+ *          description: Calendar ID (default: primary)
  *     responses:
  *       200:
  *         description: List of events

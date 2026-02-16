@@ -8,6 +8,13 @@ export const env = {
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || "",
   GOOGLE_REDIRECT_URI: process.env.GOOGLE_REDIRECT_URI || "",
   PORT: process.env.PORT || "5000",
+  OUTLOOK_CLIENT_ID: process.env.OUTLOOK_CLIENT_ID || "",
+  OUTLOOK_CLIENT_SECRET: process.env.OUTLOOK_CLIENT_SECRET || "",
+  OUTLOOK_REDIRECT_URI: process.env.OUTLOOK_REDIRECT_URI || "",
+  OUTLOOK_API_BASE_URL: process.env.OUTLOOK_API_BASE_URL || "https://graph.microsoft.com",
+  OUTLOOK_TOKEN_URL: process.env.OUTLOOK_TOKEN_URL || "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+  OUTLOOK_AUTH_URL: process.env.OUTLOOK_AUTH_URL || "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+  OUTLOOK_TENANT_ID: process.env.OUTLOOK_TENANT_ID || "common",
 };
 
 // Validate required environment variables on startup

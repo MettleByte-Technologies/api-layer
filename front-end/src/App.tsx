@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import GoogleCallback from "./pages/GoogleCallback";
 import NotFound from "./pages/NotFound";
+import OutlookCallback from "./pages/OutlookCallback";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/google/callback" element={<GoogleCallback />} />
+          <Route path="/outlook/callback" element={<OutlookCallback />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
