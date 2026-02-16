@@ -1,19 +1,18 @@
 import app from "./app";
-import { testDBConnection } from "./utils/db-test";
-import { env } from "./config/env";
-import { logger } from "./utils/logger";
+import dotenv from "dotenv";
 
-const PORT = Number(env.PORT || 5000);
+dotenv.config();
 
-const startServer = async (): Promise<void> => {
+const PORT = process.env.PORT || 5000;
+
+const startServer = (): void => {
   try {
-    await testDBConnection();
-
     app.listen(PORT, () => {
-      logger.info("Server started", { port: PORT });
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`📚 API Documentation available at http://localhost:${PORT}/api-docs`);
     });
   } catch (error) {
-    logger.error("Failed to start server", { error });
+    console.error("Failed to start server", error);
     process.exit(1);
   }
 };

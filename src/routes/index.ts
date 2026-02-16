@@ -1,10 +1,12 @@
 import { Router } from "express";
-import integrationRoutes from "./integration.routes";
-import oauthRoutes from "./oauth.routes";
+import googleRoutes from "./google.routes";
+import outlookRoutes from "./outlook.routes";
+import hubspotRoutes from "./hubspot.routes";
 
 const router = Router();
 
-router.use("/integrations", integrationRoutes);
-router.use("/oauth", oauthRoutes);
+router.use("/google", googleRoutes);
+router.use("/outlook", outlookRoutes);
+router.use("/hubspot", hubspotRoutes);
 
 export default router;

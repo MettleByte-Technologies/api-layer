@@ -1,7 +1,7 @@
 import { google } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
 import { env } from "../../../config/env";
-import { logger } from "../../../utils/logger";
+import { time } from "node:console";
 
 const createCalendarClient = (accessToken: string) => {
   const auth = new OAuth2Client(
@@ -16,33 +16,38 @@ const createCalendarClient = (accessToken: string) => {
 
 export class GoogleCalendarService {
   static async getCalendars(accessToken: string) {
-    logger.info("GoogleCalendarService.getCalendars called");
     const calendar = createCalendarClient(accessToken);
 
     const response = await calendar.calendarList.list();
-
-    logger.debug("GoogleCalendarService.getCalendars response", {
-      itemCount: response.data.items?.length,
-    });
 
     return response.data.items;
   }
 
   static async listEvents(
     accessToken: string,
-    calendarId: string = "primary"
+    calendarId: string = "primary",
+    timeMin?: string,
+    timeMax?: string
   ) {
-    logger.info("GoogleCalendarService.listEvents called", { calendarId });
     const calendar = createCalendarClient(accessToken);
-
-    const response = await calendar.events.list({
+    const params: any = {
       calendarId,
       singleEvents: true,
       orderBy: "startTime",
-    });
+    };
 
-    logger.debug("GoogleCalendarService.listEvents response", {
-      itemCount: response.data.items?.length,
+    if (timeMin) {
+      params.timeMin = timeMin;
+    }
+
+    if (timeMax) {
+      params.timeMax = timeMax;
+    }
+    const response = await calendar.events.list(params);
+    console.log("List events response:", {
+      calendarId,
+      timeMin,  
+      timeMax,
     });
 
     return response.data.items;
@@ -53,10 +58,6 @@ export class GoogleCalendarService {
     calendarId: string,
     eventId: string
   ) {
-    logger.info("GoogleCalendarService.getEvent called", {
-      calendarId,
-      eventId,
-    });
     const calendar = createCalendarClient(accessToken);
 
     const response = await calendar.events.get({
@@ -72,18 +73,13 @@ export class GoogleCalendarService {
     calendarId: string,
     eventData: any
   ) {
-    logger.info("GoogleCalendarService.createEvent called", { calendarId });
     const calendar = createCalendarClient(accessToken);
 
     const response = await calendar.events.insert({
       calendarId,
       requestBody: eventData,
     });
-
-    logger.debug("GoogleCalendarService.createEvent response", {
-      eventId: response.data.id,
-    });
-
+    console.log("Created event:", response.data);
     return response.data;
   }
 
@@ -93,10 +89,6 @@ export class GoogleCalendarService {
     eventId: string,
     eventData: any
   ) {
-    logger.info("GoogleCalendarService.updateEvent called", {
-      calendarId,
-      eventId,
-    });
     const calendar = createCalendarClient(accessToken);
 
     const response = await calendar.events.update({
@@ -113,10 +105,6 @@ export class GoogleCalendarService {
     calendarId: string,
     eventId: string
   ) {
-    logger.info("GoogleCalendarService.deleteEvent called", {
-      calendarId,
-      eventId,
-    });
     const calendar = createCalendarClient(accessToken);
 
     await calendar.events.delete({
