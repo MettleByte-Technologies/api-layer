@@ -96,10 +96,10 @@ const GoogleIntegration = () => {
     runApi("events", () => getEvents(accessToken, eventsCalendarId || undefined, formatDateToISO(timeMin) || undefined, formatDateToISO(timeMax) || undefined));
 
   const formatDateToISO = (dateString: string): string => {
-    // Convert datetime-local format (2026-02-27T11:55) to ISO 8601 (2026-02-27T11:55:00Z)
     if (!dateString) return dateString;
-    return dateString + ":00Z";
+    return new Date(dateString).toISOString();
   };
+
 
   const handleCreateEvent = () =>
     runApi("create", () =>
@@ -210,19 +210,19 @@ const GoogleIntegration = () => {
               className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
             />
             <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="datetime-local"
-                    value={timeMin}
-                    onChange={(e) => setTimeMin(e.target.value)}
-                    className="rounded-md border bg-background px-3 py-2 text-sm text-foreground"
-                  />
-                  <input
-                    type="datetime-local"
-                    value={timeMax}
-                    onChange={(e) => setTimeMax(e.target.value)}
-                    className="rounded-md border bg-background px-3 py-2 text-sm text-foreground"
-                  />
-                </div>
+              <input
+                type="datetime-local"
+                value={timeMin}
+                onChange={(e) => setTimeMin(e.target.value)}
+                className="rounded-md border bg-background px-3 py-2 text-sm text-foreground"
+              />
+              <input
+                type="datetime-local"
+                value={timeMax}
+                onChange={(e) => setTimeMax(e.target.value)}
+                className="rounded-md border bg-background px-3 py-2 text-sm text-foreground"
+              />
+            </div>
             <button
               onClick={handleGetEvents}
               disabled={!!loading}
@@ -306,11 +306,11 @@ const GoogleIntegration = () => {
         <div className="space-y-2">
           <h3 className="text-sm font-semibold text-foreground">Response</h3>
           <button
-                onClick={() => handleCopy(JSON.stringify(response, null, 2), "response")}
-                className="rounded-lg border bg-card px-3 py-2 text-muted-foreground hover:bg-secondary transition-colors"
-              >
-                {copied === "response" ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
-              </button>
+            onClick={() => handleCopy(JSON.stringify(response, null, 2), "response")}
+            className="rounded-lg border bg-card px-3 py-2 text-muted-foreground hover:bg-secondary transition-colors"
+          >
+            {copied === "response" ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
+          </button>
           <pre className="max-h-80 overflow-auto rounded-lg border bg-secondary/50 p-4 text-xs font-mono text-foreground">
             {JSON.stringify(response, null, 2)}
           </pre>

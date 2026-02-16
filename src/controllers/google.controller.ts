@@ -171,8 +171,8 @@ export class GoogleController {
             const googleEvent = {
                 summary: title,
                 description: description || "",
-                start: { dateTime: start, timeZone: "UTC" },
-                end: { dateTime: end, timeZone: "UTC" },
+                start: { dateTime: start },
+                end: { dateTime: end },
                 attendees: attendees?.map((email: string) => ({ email })) || [],
             };
 
