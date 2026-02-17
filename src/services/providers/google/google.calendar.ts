@@ -2,7 +2,6 @@ import { google } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
 import { env } from "../../../config/env";
 import { CreateEventRequest, CreateEventResponse, GetEventsRequest, GetEventsResponse } from "../../../interfaces/google.interface";
-import { time } from "node:console";
 
 const createCalendarClient = (accessToken: string) => {
   const auth = new OAuth2Client(

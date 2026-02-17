@@ -10,9 +10,6 @@ export async function getAuthUrl(redirectUri: string): Promise<string> {
   if (!res.ok) throw new Error(data.error || "Failed to get auth URL");
   console.log("Received auth URL:", data.authUrl);
   return data.authUrl;
-
-
-  
 }
 
 export async function exchangeCodeForTokens(code: string, redirectUri: string) {
@@ -57,31 +54,33 @@ export async function getEvents(accessToken: string, calendarId?: string, timeMi
 }
 
 export async function createEvent(
- calendarId: string | "primary" | undefined,
+  calendarId: string | "primary" | undefined,
   accessToken: string,
   event: {
     subject: string;
-    body:{
-        contentType: string;
-        content: string;
+    body: {
+      contentType: string;
+      content: string;
     };
     start: {
-        dateTime: string;
-        timeZone: string;
-  };
+      dateTime: string;
+      timeZone: string;
+    };
     end: {
-        dateTime: string;
-        timeZone: string;
+      dateTime: string;
+      timeZone: string;
     };
     attendees?: {
-        emailAddress: {
-            address: string;            name: string;
-        };
-        type: string;
+      emailAddress: {
+        address: string;
+        name: string;
+      };
+      type: string;
     }[];
   }
 ) {
-  const res = await fetch(`${API_BASE}/events`, {
+  const query = calendarId ? `?calendarId=${encodeURIComponent(calendarId)}` : "";
+  const res = await fetch(`${API_BASE}/events${query}`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,

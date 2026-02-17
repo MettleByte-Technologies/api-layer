@@ -11,19 +11,11 @@ const createOAuth2Client = (redirectUri?: string) => {
   );
 };
 
-// export const generateAuthUrl = (redirectUri: string) => {
-//   const oauth2Client = createOAuth2Client(redirectUri);
-//   return oauth2Client.generateAuthUrl({
-//     access_type: "offline",
-//     prompt: "consent",
-//     scope: GOOGLE_SCOPES,
-//   });
-// };
 export const generateAuthUrl = (
   request: ConnectRequest
 ): ConnectResponse => {
-
-  const oauth2Client = createOAuth2Client(request.redirectUri);
+  const redirectUri = request.redirect_uri ?? request.redirectUri;
+  const oauth2Client = createOAuth2Client(redirectUri);
 
   const authUri = oauth2Client.generateAuthUrl({
     access_type: "offline",
@@ -31,10 +23,8 @@ export const generateAuthUrl = (
     scope: GOOGLE_SCOPES,
   });
 
-  const obj= { authUri };
-  
-  return obj as ConnectResponse;
-}
+  return { authUri };
+};
 
 export const exchangeCodeForTokens = async (code: string, redirectUri: string) => {
   const oauth2Client = createOAuth2Client(redirectUri);
@@ -48,4 +38,10 @@ export const refreshAccessToken = async (refreshToken: string) => {
   const { credentials } = await oauth2Client.refreshAccessToken();
   return credentials;
 };
+
+export const revokeConnection = async (accessToken: string) => {
+  const oauth2Client = createOAuth2Client();
+  oauth2Client.setCredentials({ access_token: accessToken });
+  await oauth2Client.revokeCredentials();
+} 
 

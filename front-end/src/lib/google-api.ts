@@ -9,7 +9,7 @@ export async function getAuthUrl(redirectUri: string): Promise<string> {
   const res = await fetch(`${API_BASE}/connect`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ redirectUri: redirectUri }),
+    body: JSON.stringify({ redirect_uri: redirectUri }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to get auth URL");

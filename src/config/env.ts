@@ -15,6 +15,7 @@ export const env = {
   OUTLOOK_TOKEN_URL: process.env.OUTLOOK_TOKEN_URL || "https://login.microsoftonline.com/common/oauth2/v2.0/token",
   OUTLOOK_AUTH_URL: process.env.OUTLOOK_AUTH_URL || "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
   OUTLOOK_TENANT_ID: process.env.OUTLOOK_TENANT_ID || "common",
+  OUTLOOK_AUTH_BASE_URL: process.env.OUTLOOK_AUTH_BASE_URL || "https://login.microsoftonline.com/consumer/oauth2/v2.0",
 };
 
 // Validate required environment variables on startup

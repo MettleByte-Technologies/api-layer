@@ -1,32 +1,13 @@
 import axios, { AxiosInstance } from "axios";
-import { Request, Response } from "express";
 import { env } from "../../../config/env";
-import { OutlookTokenResponse, OutlookUserProfile } from "../../../interfaces/outlook.interface"; 
+import { OutlookTokenResponse, OutlookUserProfile } from "../../../interfaces/outlook.interface";
 
-// interface OutlookTokenResponse {
-//   access_token: string;
-//   refresh_token?: string;
-//   expires_in: number;
-//   token_type: string;
-// }
-
-// interface OutlookUserProfile {
-//   id: string;
-//   displayName: string;
-//   mail: string;
-// }
-
-// export const generateAuthUrl = (redirectUri: string) => {
-
-// }
-
-export class outlookOAuthService {
-    
+export class OutlookOAuthService {
   private clientId: string;
   private clientSecret: string;
   private redirectUri: string;
   private httpClient: AxiosInstance;
-  private tenantId: string; 
+  private tenantId: string;
 
   constructor() {
     this.clientId = env.OUTLOOK_CLIENT_ID || "";
@@ -35,7 +16,7 @@ export class outlookOAuthService {
     this.tenantId = env.OUTLOOK_TENANT_ID || "common";
 
     this.httpClient = axios.create({
-      baseURL: env.OUTLOOK_API_BASE_URL || "https://graph.microsoft.com",
+      baseURL: env.OUTLOOK_AUTH_BASE_URL || "https://login.microsoftonline.com/consumers/oauth2/v2.0",
     });
   }
 
@@ -72,12 +53,29 @@ export class outlookOAuthService {
    */
   async getAccessToken(code: string, redirectUri?: string): Promise<OutlookTokenResponse> {
     try {
+      console.log("Exchanging code for token with redirect URI:", redirectUri);
+      console.log("Using code:", code);
+      
+      // const response = await this.httpClient.post("/token", {
+      //   client_id: this.clientId,
+      //   client_secret: this.clientSecret,
+      //   code,
+      //   redirect_uri: redirectUri,
+      //   grant_type: "authorization_code",
+      //   scope: "Calendars.ReadWrite offline_access User.Read",
+      // },
+      //   {
+      //     headers: {
+      //       "Content-Type": "application/x-www-form-urlencoded",
+      //     },
+      //   });
+
       const response = await axios.post(
         `https://login.microsoftonline.com/${this.tenantId}/oauth2/v2.0/token`,
         {
           client_id: this.clientId,
           client_secret: this.clientSecret,
-          code: code,
+          code,
           redirect_uri: redirectUri,
           grant_type: "authorization_code",
           scope: "Calendars.ReadWrite offline_access User.Read",
@@ -151,4 +149,4 @@ export class outlookOAuthService {
   }
 }
 
-export default new outlookOAuthService();
+export default new OutlookOAuthService();

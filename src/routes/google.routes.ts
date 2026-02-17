@@ -20,7 +20,7 @@ const router = Router();
  *             properties:
  *               redirect_uri:
  *                 type: string
- *                 description: The redirect URI to use for OAuth callback
+ *                 description: The redirect URI to use for OAuth callback (preferred key; `redirectUri` is also accepted)
  *     responses:
  *       200:
  *         description: Auth URL generated successfully
@@ -117,7 +117,7 @@ router.get("/calendars", GoogleController.getCalendars);
  *         name: calendarId
  *         schema:
  *           type: string
- *          description: Calendar ID (default: primary)
+ *         description: Calendar ID (default: primary)
  *     responses:
  *       200:
  *         description: List of events
@@ -148,26 +148,45 @@ router.get("/events", GoogleController.getEvents);
  *           schema:
  *             type: object
  *             required:
- *               - title
- *               - start
- *               - end
+ *               - event
  *             properties:
- *               title:
- *                 type: string
- *               description:
- *                 type: string
- *               start:
- *                 type: string
- *                 format: date-time
- *               end:
- *                 type: string
- *                 format: date-time
- *               attendees:
- *                 type: array
- *                 items:
- *                   type: string
  *               calendarId:
  *                 type: string
+ *                 description: Calendar ID (default: primary)
+ *               event:
+ *                 type: object
+ *                 required:
+ *                   - summary
+ *                   - start
+ *                   - end
+ *                 properties:
+ *                   summary:
+ *                     type: string
+ *                   description:
+ *                     type: string
+ *                   start:
+ *                     type: object
+ *                     properties:
+ *                       dateTime:
+ *                         type: string
+ *                         format: date-time
+ *                       timeZone:
+ *                         type: string
+ *                   end:
+ *                     type: object
+ *                     properties:
+ *                       dateTime:
+ *                         type: string
+ *                         format: date-time
+ *                       timeZone:
+ *                         type: string
+ *                   attendees:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         email:
+ *                           type: string
  *     responses:
  *       200:
  *         description: Event created successfully

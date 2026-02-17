@@ -3,7 +3,13 @@
 // ============================================================================
 
 export interface ConnectRequest {
-  redirectUri: string;
+  /**
+   * Preferred (project-wide) request key.
+   * Kept alongside `redirectUri` for backward compatibility.
+   */
+  redirect_uri?: string;
+  /** @deprecated Use `redirect_uri` instead. */
+  redirectUri?: string;
 }
 
 export interface ConnectResponse {
@@ -12,7 +18,7 @@ export interface ConnectResponse {
 
 export interface AccessTokenRequest {
   code: string;
-  redirectUri: string;
+  redirect_uri: string;
 }
 
 
@@ -29,7 +35,7 @@ export interface AccessTokenResponse {
 // ============================================================================
 
 export interface RefreshTokenRequest {
-  refreshToken: string;
+  refresh_token: string;
 }
 
 export interface RefreshTokenResponse {
