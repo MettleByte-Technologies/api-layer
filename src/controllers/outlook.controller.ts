@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import  outlookOAuthService  from "../services/providers/outlook/outlook.auth";
-import OutlookCalendarService, { OutlookEvent } from "../services/providers/outlook/outlook.calendar";
+import OutlookCalendarService from "../services/providers/outlook/outlook.calendar";
+import { OutlookEvent } from "../interfaces/outlook.interface";
 export class OutlookController {
     static connect(req: Request, res: Response) {
               const { redirect_uri } = req.body; 
@@ -56,8 +57,8 @@ export class OutlookController {
             }
             const access_token = authHeader.substring(7); // Remove "Bearer " prefix
             
-            const event = req.body.event as OutlookEvent;
-            const calendarId = req.body.calendarId as string || "primary";
+            const event = req.body as OutlookEvent;
+            const calendarId = req.query.calendarId as string || "primary";
             const createdEvent = await OutlookCalendarService.createEvent(access_token, calendarId, event);
             res.json(createdEvent);
         } catch (error: any) {
@@ -66,6 +67,12 @@ export class OutlookController {
     }
 
     static async refreshToken(req: Request, res: Response) {
-        res.status(501).json({ error: "Not implemented" });
+        try {
+            const { refresh_token } = req.body;
+            const tokenResponse = await outlookOAuthService.refreshAccessToken(refresh_token);
+            res.json(tokenResponse);
+        } catch (error: any) {
+            res.status(500).json({ error: error.message });
+        }
     }
 }

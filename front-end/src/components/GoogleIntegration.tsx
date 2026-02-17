@@ -104,13 +104,16 @@ const GoogleIntegration = () => {
   const handleCreateEvent = () =>
     runApi("create", () =>
       createEvent(accessToken, {
-        title: eventTitle,
-        description: eventDesc || undefined,
-        start: formatDateToISO(eventStart),
-        end: formatDateToISO(eventEnd),
-        attendees: eventAttendees ? eventAttendees.split(",").map((e) => e.trim()) : undefined,
         calendarId: eventCalendarId || undefined,
+        event: {
+          summary: eventTitle,
+          description: eventDesc,
+          start: { dateTime: new Date(eventStart).toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+          end: { dateTime: new Date(eventEnd).toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+          attendees: eventAttendees ? eventAttendees.split(",").map(email => ({ email: email.trim() })) : undefined,
+        }
       })
+
     );
 
   return (

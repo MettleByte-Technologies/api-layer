@@ -1,19 +1,20 @@
 import axios, { AxiosInstance } from "axios";
 import { Request, Response } from "express";
 import { env } from "../../../config/env";
+import { OutlookTokenResponse, OutlookUserProfile } from "../../../interfaces/outlook.interface"; 
 
-interface OutlookTokenResponse {
-  access_token: string;
-  refresh_token?: string;
-  expires_in: number;
-  token_type: string;
-}
+// interface OutlookTokenResponse {
+//   access_token: string;
+//   refresh_token?: string;
+//   expires_in: number;
+//   token_type: string;
+// }
 
-interface OutlookUserProfile {
-  id: string;
-  displayName: string;
-  mail: string;
-}
+// interface OutlookUserProfile {
+//   id: string;
+//   displayName: string;
+//   mail: string;
+// }
 
 // export const generateAuthUrl = (redirectUri: string) => {
 

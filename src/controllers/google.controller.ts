@@ -5,6 +5,7 @@ import {
     refreshAccessToken,
 } from "../services/providers/google/google.auth";
 import { GoogleCalendarService } from "../services/providers/google/google.calendar";
+import {ConnectRequest, ConnectResponse, AccessTokenRequest, AccessTokenResponse, CreateEventRequest, GetEventsRequest } from "../interfaces/google.interface";
 
 export class GoogleController {
     /**
@@ -15,29 +16,29 @@ export class GoogleController {
     static connect(req: Request, res: Response) {
         try {
             const { redirect_uri } = req.body;
-
-            if (!redirect_uri) {
-                return res.status(400).json({ 
+            const connectRequest = req.body as ConnectRequest;
+            if (!connectRequest) {
+                return res.status(400).json({
                     error: "redirect_uri is required in request body",
                     example: { redirect_uri: "http://localhost:8080/callback" }
                 });
             }
 
             // Validate redirect_uri format
-            if (typeof redirect_uri !== "string" || !redirect_uri.startsWith("http")) {
-                return res.status(400).json({ 
+            if (typeof connectRequest.redirectUri !== "string" || !connectRequest.redirectUri.startsWith("http")) {
+                return res.status(400).json({
                     error: "redirect_uri must be a valid URL starting with http:// or https://",
-                    received: redirect_uri,
+                    received: connectRequest.redirectUri,
                     example: { redirect_uri: "http://localhost:8080/callback" }
                 });
             }
 
-            const authUrl = generateAuthUrl(redirect_uri);
-            res.json({ authUri: authUrl });
+            const authUrl = generateAuthUrl(connectRequest);
+            res.json(authUrl);
         } catch (error: any) {
-            res.status(500).json({ 
-                error: "Failed to generate auth URL", 
-                message: error.message 
+            res.status(500).json({
+                error: "Failed to generate auth URL",
+                message: error.message
             });
         }
     }
@@ -52,8 +53,8 @@ export class GoogleController {
             const { code, redirect_uri } = req.body;
 
             if (!code || !redirect_uri) {
-                return res.status(400).json({ 
-                    error: "code and redirect_uri are required" 
+                return res.status(400).json({
+                    error: "code and redirect_uri are required"
                 });
             }
 
@@ -67,9 +68,9 @@ export class GoogleController {
                 scope: tokens.scope,
             });
         } catch (error: any) {
-            res.status(500).json({ 
-                error: "Failed to exchange code for tokens", 
-                message: error.message 
+            res.status(500).json({
+                error: "Failed to exchange code for tokens",
+                message: error.message
             });
         }
     }
@@ -82,10 +83,10 @@ export class GoogleController {
     static async getCalendars(req: Request, res: Response) {
         try {
             const authHeader = req.headers.authorization;
-            
+
             if (!authHeader || !authHeader.startsWith("Bearer ")) {
-                return res.status(401).json({ 
-                    error: "Authorization header with Bearer token is required" 
+                return res.status(401).json({
+                    error: "Authorization header with Bearer token is required"
                 });
             }
 
@@ -94,9 +95,9 @@ export class GoogleController {
 
             res.json({ calendars });
         } catch (error: any) {
-            res.status(500).json({ 
-                error: "Failed to get calendars", 
-                message: error.message 
+            res.status(500).json({
+                error: "Failed to get calendars",
+                message: error.message
             });
         }
     }
@@ -109,36 +110,40 @@ export class GoogleController {
     static async getEvents(req: Request, res: Response) {
         try {
             const authHeader = req.headers.authorization;
-            
+
             if (!authHeader || !authHeader.startsWith("Bearer ")) {
-                return res.status(401).json({ 
-                    error: "Authorization header with Bearer token is required" 
+                return res.status(401).json({
+                    error: "Authorization header with Bearer token is required"
                 });
             }
 
-            
+
 
             const accessToken = authHeader.substring(7);
-            const calendarId = req.query.calendarId as string || "primary";
-            const timeMin = req.query.timeMin as string; // Get events starting from now
-            const timeMax = req.query.timeMax as string; // Optional end time
-            console.log("Get events request:", {
-                calendarId,
-                timeMin,
-                timeMax,
-            });
+
+            const params: GetEventsRequest = {
+                calendarId: req.query.calendarId as string || "primary",
+                timeMin: req.query.timeMin as string,
+                timeMax: req.query.timeMax as string,
+                maxResults: req.query.maxResults ? Number(req.query.maxResults) : undefined,
+                pageToken: req.query.pageToken as string,
+                singleEvents: req.query.singleEvents === "true",
+                orderBy: req.query.orderBy as "startTime" | "updated",
+                showDeleted: req.query.showDeleted === "true",
+                showHiddenInvitations: req.query.showHiddenInvitations === "true",
+                q: req.query.q as string,
+            };
+
             const events = await GoogleCalendarService.listEvents(
                 accessToken,
-                calendarId,
-                timeMin,
-                timeMax
+                params
             );
 
             res.json({ events });
         } catch (error: any) {
-            res.status(500).json({ 
-                error: "Failed to get events", 
-                message: error.message 
+            res.status(500).json({
+                error: "Failed to get events",
+                message: error.message
             });
         }
     }
@@ -152,42 +157,43 @@ export class GoogleController {
     static async createEvent(req: Request, res: Response) {
         try {
             const authHeader = req.headers.authorization;
-            
+
             if (!authHeader || !authHeader.startsWith("Bearer ")) {
-                return res.status(401).json({ 
-                    error: "Authorization header with Bearer token is required" 
+                return res.status(401).json({
+                    error: "Authorization header with Bearer token is required"
                 });
             }
 
             const accessToken = authHeader.substring(7);
-            const { title, description, start, end, attendees, calendarId } = req.body;
+            // const { title, description, start, end, attendees, calendarId } = req.body;
+            const eventRequest = req.body as CreateEventRequest;
+            
+            // if (!title || !start || !end) {
+            //     return res.status(400).json({
+            //         error: "title, start, and end are required"
+            //     });
+            // }
 
-            if (!title || !start || !end) {
-                return res.status(400).json({ 
-                    error: "title, start, and end are required" 
-                });
-            }
-
-            const googleEvent = {
-                summary: title,
-                description: description || "",
-                start: { dateTime: start },
-                end: { dateTime: end },
-                attendees: attendees?.map((email: string) => ({ email })) || [],
-            };
+            // const googleEvent = {
+            //     summary: title,
+            //     description: description || "",
+            //     start: { dateTime: start },
+            //     end: { dateTime: end },
+            //     attendees: attendees?.map((email: string) => ({ email })) || [],
+            // };
 
             const result = await GoogleCalendarService.createEvent(
                 accessToken,
-                calendarId || "primary",
-                googleEvent
+                eventRequest.calendarId || "primary",
+                eventRequest.event
             );
 
             res.json({ event: result });
         } catch (error: any) {
             console.error("Error creating event:", error);
-            res.status(500).json({ 
-                error: "Failed to create event", 
-                message: error.message 
+            res.status(500).json({
+                error: "Failed to create event",
+                message: error.message
             });
         }
     }
@@ -202,8 +208,8 @@ export class GoogleController {
             const { refresh_token } = req.body;
 
             if (!refresh_token) {
-                return res.status(400).json({ 
-                    error: "refresh_token is required" 
+                return res.status(400).json({
+                    error: "refresh_token is required"
                 });
             }
 
@@ -217,9 +223,9 @@ export class GoogleController {
                 scope: credentials.scope,
             });
         } catch (error: any) {
-            res.status(500).json({ 
-                error: "Failed to refresh token", 
-                message: error.message 
+            res.status(500).json({
+                error: "Failed to refresh token",
+                message: error.message
             });
         }
     }

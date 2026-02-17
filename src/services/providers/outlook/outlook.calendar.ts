@@ -1,62 +1,63 @@
 import axios, { AxiosInstance } from "axios";
 import { env } from "../../../config/env";
+import { OutlookEvent, OutlookCalendarList } from "../../../interfaces/outlook.interface";
 
-export interface OutlookEvent {
-  subject: string;
-  body?: {
-    contentType: "HTML" | "Text";
-    content: string;
-  };
-  start: {
-    dateTime: string;
-    timeZone: string;
-  };
-  end: {
-    dateTime: string;
-    timeZone: string;
-  };
-  attendees?: Array<{
-    emailAddress: {
-      address: string;
-      name: string;
-    };
-    type: "required" | "optional" | "resource";
-    status: {
-      response: string;
-      time: string;
-    };
-  }>;
-  categories?: string[];
-  isReminderOn?: boolean;
-  reminderMinutesBeforeStart?: number;
-  isAllDay?: boolean;
-  recurrence?: {
-    pattern: {
-      type: string;
-      interval: number;
-      month?: number;
-      dayOfMonth?: number;
-      daysOfWeek?: string[];
-      firstDayOfWeek?: string;
-    };
-    recurrenceTimeZone: string;
-    numberOfOccurrences?: number;
-    range: {
-      type: string;
-      startDate: string;
-      endDate?: string;
-      recurrenceTimeZone: string;
-    };
-  };
-}
+// export interface OutlookEvent {
+//   subject: string;
+//   body?: {
+//     contentType: "HTML" | "Text";
+//     content: string;
+//   };
+//   start: {
+//     dateTime: string;
+//     timeZone: string;
+//   };
+//   end: {
+//     dateTime: string;
+//     timeZone: string;
+//   };
+//   attendees?: Array<{
+//     emailAddress: {
+//       address: string;
+//       name: string;
+//     };
+//     type: "required" | "optional" | "resource";
+//     status: {
+//       response: string;
+//       time: string;
+//     };
+//   }>;
+//   categories?: string[];
+//   isReminderOn?: boolean;
+//   reminderMinutesBeforeStart?: number;
+//   isAllDay?: boolean;
+//   recurrence?: {
+//     pattern: {
+//       type: string;
+//       interval: number;
+//       month?: number;
+//       dayOfMonth?: number;
+//       daysOfWeek?: string[];
+//       firstDayOfWeek?: string;
+//     };
+//     recurrenceTimeZone: string;
+//     numberOfOccurrences?: number;
+//     range: {
+//       type: string;
+//       startDate: string;
+//       endDate?: string;
+//       recurrenceTimeZone: string;
+//     };
+//   };
+// }
 
-export interface OutlookCalendarList {
-  value: Array<{
-    id: string;
-    name: string;
-    isDefaultCalendar: boolean;
-  }>;
-}
+// export interface OutlookCalendarList {
+//   value: Array<{
+//     id: string;
+//     name: string;
+//     isDefaultCalendar: boolean;
+//   }>;
+// }
 
 export class OutlookCalendarService {
   private httpClient: AxiosInstance;
@@ -164,8 +165,9 @@ export class OutlookCalendarService {
             calendarId,
             event,
         });
+      const url = calendarId === "primary" ? `/me/events` : `/me/calendars/${calendarId}/events`;
       const response = await this.httpClient.post(
-        `/me/calendars/${calendarId}/events`,
+        url,
         event,
         {
           headers: {

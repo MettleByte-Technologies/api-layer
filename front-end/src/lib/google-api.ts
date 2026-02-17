@@ -1,10 +1,15 @@
+import { CreateEventRequest } from "@/interface/google.interface";
+
 const API_BASE = "http://localhost:5000/api/v1/google";
+
+
+
 
 export async function getAuthUrl(redirectUri: string): Promise<string> {
   const res = await fetch(`${API_BASE}/connect`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ redirect_uri: redirectUri }),
+    body: JSON.stringify({ redirectUri: redirectUri }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "Failed to get auth URL");
@@ -54,14 +59,7 @@ export async function getEvents(accessToken: string, calendarId?: string, timeMi
 
 export async function createEvent(
   accessToken: string,
-  event: {
-    title: string;
-    description?: string;
-    start: string;
-    end: string;
-    attendees?: string[];
-    calendarId?: string;
-  }
+  event: CreateEventRequest
 ) {
   const res = await fetch(`${API_BASE}/events`, {
     method: "POST",

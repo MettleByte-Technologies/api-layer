@@ -1,6 +1,7 @@
 import { google } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
 import { env } from "../../../config/env";
+import { CreateEventRequest, CreateEventResponse, GetEventsRequest, GetEventsResponse } from "../../../interfaces/google.interface";
 import { time } from "node:console";
 
 const createCalendarClient = (accessToken: string) => {
@@ -25,32 +26,50 @@ export class GoogleCalendarService {
 
   static async listEvents(
     accessToken: string,
-    calendarId: string = "primary",
-    timeMin?: string,
-    timeMax?: string
-  ) {
+    getEventsRequest: GetEventsRequest
+  ) : Promise<GetEventsResponse> {
     const calendar = createCalendarClient(accessToken);
     const params: any = {
-      calendarId,
+      calendarId: getEventsRequest.calendarId,
       singleEvents: true,
       orderBy: "startTime",
     };
 
-    if (timeMin) {
-      params.timeMin = timeMin;
+    if (getEventsRequest.timeMin) {
+      params.timeMin = getEventsRequest.timeMin;
     }
 
-    if (timeMax) {
-      params.timeMax = timeMax;
+    if (getEventsRequest.timeMax) {
+      params.timeMax = getEventsRequest.timeMax;
+    }
+
+    if (getEventsRequest.maxResults) {
+      params.maxResults = getEventsRequest.maxResults;
+    }
+
+    if (getEventsRequest.pageToken) {
+      params.pageToken = getEventsRequest.pageToken;
+    }
+
+    if (getEventsRequest.showDeleted !== undefined) {
+      params.showDeleted = getEventsRequest.showDeleted;
+    }
+
+    if (getEventsRequest.showHiddenInvitations !== undefined) {
+      params.showHiddenInvitations = getEventsRequest.showHiddenInvitations;
+    }
+
+    if (getEventsRequest.q) {
+      params.q = getEventsRequest.q;
     }
     const response = await calendar.events.list(params);
     console.log("List events response:", {
-      calendarId,
-      timeMin,  
-      timeMax,
+      calendarId: getEventsRequest.calendarId,
+      timeMin: getEventsRequest.timeMin,  
+      timeMax: getEventsRequest.timeMax,
     });
 
-    return response.data.items;
+    return response.data as GetEventsResponse;
   }
 
   static async getEvent(
@@ -68,11 +87,24 @@ export class GoogleCalendarService {
     return response.data;
   }
 
+
+  // static async createEventNew(
+  //   accessToken: string,
+  //   eventRequest: CreateEventRequest
+  // ):Promise<CreateEventResponse>{
+  //   const calendar = createCalendarClient(accessToken);
+  //   const response = await calendar.events.insert({
+  //     calendarId: eventRequest.calendarId,
+  //     requestBody: eventRequest.event,
+  //   });
+  //   return response as unknown as CreateEventResponse;
+  // }
+
   static async createEvent(
     accessToken: string,
     calendarId: string,
-    eventData: any
-  ) {
+    eventData: CreateEventRequest["event"]
+  ) : Promise<CreateEventResponse> {
     const calendar = createCalendarClient(accessToken);
 
     const response = await calendar.events.insert({
@@ -80,7 +112,7 @@ export class GoogleCalendarService {
       requestBody: eventData,
     });
     console.log("Created event:", response.data);
-    return response.data;
+    return response.data as CreateEventResponse;
   }
 
   static async updateEvent(

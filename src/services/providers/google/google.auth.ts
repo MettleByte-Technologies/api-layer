@@ -1,6 +1,7 @@
 import { google } from "googleapis";
 import { GOOGLE_SCOPES } from "../../../config/google";
 import { env } from "../../../config/env";
+import { ConnectRequest, ConnectResponse } from "../../../interfaces/google.interface";
 
 const createOAuth2Client = (redirectUri?: string) => {
   return new google.auth.OAuth2(
@@ -10,14 +11,30 @@ const createOAuth2Client = (redirectUri?: string) => {
   );
 };
 
-export const generateAuthUrl = (redirectUri: string) => {
-  const oauth2Client = createOAuth2Client(redirectUri);
-  return oauth2Client.generateAuthUrl({
+// export const generateAuthUrl = (redirectUri: string) => {
+//   const oauth2Client = createOAuth2Client(redirectUri);
+//   return oauth2Client.generateAuthUrl({
+//     access_type: "offline",
+//     prompt: "consent",
+//     scope: GOOGLE_SCOPES,
+//   });
+// };
+export const generateAuthUrl = (
+  request: ConnectRequest
+): ConnectResponse => {
+
+  const oauth2Client = createOAuth2Client(request.redirectUri);
+
+  const authUri = oauth2Client.generateAuthUrl({
     access_type: "offline",
     prompt: "consent",
     scope: GOOGLE_SCOPES,
   });
-};
+
+  const obj= { authUri };
+  
+  return obj as ConnectResponse;
+}
 
 export const exchangeCodeForTokens = async (code: string, redirectUri: string) => {
   const oauth2Client = createOAuth2Client(redirectUri);
