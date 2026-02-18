@@ -79,6 +79,38 @@ router.post("/connect", GoogleController.connect);
  */
 router.post("/token", GoogleController.getAccessToken);
 
+
+/**
+ * @swagger
+ * /google/revoke:
+ *   post:
+ *     summary: Revoke Google access token
+ *     tags: [Google]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - access_token
+ *             properties:
+ *               access_token:
+ *                 type: string
+ *                 description: The access token to revoke *               
+ *     responses:
+ *       200:
+ *         description: Connection revoked successfully
+ *       400:
+ *         description: Bad request - access_token is required
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 
+ */
+router.post("/revoke", GoogleController.revokeConnection);
 /**
  * @swagger
  * /google/calendars:

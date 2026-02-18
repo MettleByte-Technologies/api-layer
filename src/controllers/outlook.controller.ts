@@ -13,7 +13,7 @@ export class OutlookController {
 
   static async getAccessToken(req: Request, res: Response) {
     try {
-      const { code, redirect_uri } = req.body;
+      const { code, redirect_uri } = req.body;      
       const tokenResponse = await outlookOAuthService.getAccessToken(code, redirect_uri);
       res.json(tokenResponse);
     } catch (error: any) {

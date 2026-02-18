@@ -33,6 +33,18 @@ export async function exchangeCodeForTokens(code: string, redirectUri: string) {
   };
 }
 
+export async function revokeConnection(accessToken: string) {
+  const res = await fetch(`${API_BASE}/revoke`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ access_token: accessToken }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "Failed to revoke connection");
+  console.log("Revocation response:", data);
+  return data;
+}
+
 export async function getCalendars(accessToken: string) {
   const res = await fetch(`${API_BASE}/calendars`, {
     headers: { Authorization: `Bearer ${accessToken}` },

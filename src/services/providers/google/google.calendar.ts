@@ -86,19 +86,6 @@ export class GoogleCalendarService {
     return response.data;
   }
 
-
-  // static async createEventNew(
-  //   accessToken: string,
-  //   eventRequest: CreateEventRequest
-  // ):Promise<CreateEventResponse>{
-  //   const calendar = createCalendarClient(accessToken);
-  //   const response = await calendar.events.insert({
-  //     calendarId: eventRequest.calendarId,
-  //     requestBody: eventRequest.event,
-  //   });
-  //   return response as unknown as CreateEventResponse;
-  // }
-
   static async createEvent(
     accessToken: string,
     calendarId: string,

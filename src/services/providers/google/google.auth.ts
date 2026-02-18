@@ -40,7 +40,7 @@ export const refreshAccessToken = async (refreshToken: string) => {
 };
 
 export const revokeConnection = async (accessToken: string) => {
-  const oauth2Client = createOAuth2Client();
+  const oauth2Client = createOAuth2Client(accessToken);
   oauth2Client.setCredentials({ access_token: accessToken });
   await oauth2Client.revokeCredentials();
 } 
