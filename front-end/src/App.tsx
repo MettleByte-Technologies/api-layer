@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import GoogleCallback from "./pages/GoogleCallback";
 import NotFound from "./pages/NotFound";
 import OutlookCallback from "./pages/OutlookCallback";
+import CalendlyCallback from "./pages/CalendlyCallback";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/google/callback" element={<GoogleCallback />} />
           <Route path="/outlook/callback" element={<OutlookCallback />} />
+          <Route path="/calendly/callback" element={<CalendlyCallback />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

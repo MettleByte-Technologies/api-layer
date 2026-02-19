@@ -7,6 +7,7 @@ import {
 } from "../services/providers/google/google.auth";
 import { GoogleCalendarService } from "../services/providers/google/google.calendar";
 import { ConnectRequest, CreateEventRequest, GetEventsRequest } from "../interfaces/google.interface";
+import { ValidationError, requireBearerToken, requireString, requireUrlString } from "../utils/validator";
 
 export class GoogleController {
 
@@ -15,24 +16,13 @@ export class GoogleController {
         try {
             const connectRequest = req.body as ConnectRequest;
             const redirectUri = connectRequest?.redirect_uri ?? connectRequest?.redirectUri;
-
-            if (!redirectUri) {
-                return res.status(400).json({
-                    error: "redirect_uri is required in request body",
-                    example: { redirect_uri: "http://localhost:8080/google/callback" },
-                });
-            }
-
-            if (typeof redirectUri !== "string" || !redirectUri.startsWith("http")) {
-                return res.status(400).json({
-                    error: "redirect_uri must be a valid URL starting with http:// or https://",
-                    received: redirectUri,
-                    example: { redirect_uri: "http://localhost:8080/google/callback" },
-                });
-            }
+            requireUrlString(redirectUri, "redirect_uri");
 
             res.json(generateAuthUrl({ ...connectRequest, redirect_uri: redirectUri }));
         } catch (error: any) {
+            if (error instanceof ValidationError) {
+                return res.status(400).json({ error: error.message });
+            }
             res.status(500).json({
                 error: "Failed to generate auth URL",
                 message: error.message,
@@ -43,13 +33,8 @@ export class GoogleController {
     //exchange authorization code for access token
     static async getAccessToken(req: Request, res: Response) {
         try {
-            const { code, redirect_uri } = req.body;
-
-            if (!code || !redirect_uri) {
-                return res.status(400).json({
-                    error: "code and redirect_uri are required",
-                });
-            }
+            const code = requireString(req.body?.code, "code");
+            const redirect_uri = requireUrlString(req.body?.redirect_uri, "redirect_uri");
 
             const tokens = await exchangeCodeForTokens(code, redirect_uri);
 
@@ -61,6 +46,9 @@ export class GoogleController {
                 scope: tokens.scope,
             });
         } catch (error: any) {
+            if (error instanceof ValidationError) {
+                return res.status(400).json({ error: error.message });
+            }
             res.status(500).json({
                 error: "Failed to exchange code for tokens",
                 message: error.message,
@@ -71,19 +59,14 @@ export class GoogleController {
     //refresh access token using refresh token
     static async getCalendars(req: Request, res: Response) {
         try {
-            const authHeader = req.headers.authorization;
-
-            if (!authHeader || !authHeader.startsWith("Bearer ")) {
-                return res.status(401).json({
-                    error: "Authorization header with Bearer token is required",
-                });
-            }
-
-            const accessToken = authHeader.substring(7);
+            const accessToken = requireBearerToken(req.headers.authorization);
             const calendars = await GoogleCalendarService.getCalendars(accessToken);
 
             res.json({ calendars });
         } catch (error: any) {
+            if (error instanceof ValidationError) {
+                return res.status(401).json({ error: error.message });
+            }
             res.status(500).json({
                 error: "Failed to get calendars",
                 message: error.message,
@@ -94,15 +77,7 @@ export class GoogleController {
     //get events from a calendar
     static async getEvents(req: Request, res: Response) {
         try {
-            const authHeader = req.headers.authorization;
-
-            if (!authHeader || !authHeader.startsWith("Bearer ")) {
-                return res.status(401).json({
-                    error: "Authorization header with Bearer token is required",
-                });
-            }
-
-            const accessToken = authHeader.substring(7);
+            const accessToken = requireBearerToken(req.headers.authorization);
 
             const params: GetEventsRequest = {
                 calendarId: (req.query.calendarId as string) || "primary",
@@ -121,6 +96,9 @@ export class GoogleController {
 
             res.json({ events });
         } catch (error: any) {
+            if (error instanceof ValidationError) {
+                return res.status(401).json({ error: error.message });
+            }
             res.status(500).json({
                 error: "Failed to get events",
                 message: error.message,
@@ -131,15 +109,7 @@ export class GoogleController {
     //create an event in a calendar
     static async createEvent(req: Request, res: Response) {
         try {
-            const authHeader = req.headers.authorization;
-
-            if (!authHeader || !authHeader.startsWith("Bearer ")) {
-                return res.status(401).json({
-                    error: "Authorization header with Bearer token is required",
-                });
-            }
-
-            const accessToken = authHeader.substring(7);
+            const accessToken = requireBearerToken(req.headers.authorization);
             const eventRequest = req.body as CreateEventRequest;
 
             const result = await GoogleCalendarService.createEvent(
@@ -150,7 +120,9 @@ export class GoogleController {
 
             res.json({ event: result });
         } catch (error: any) {
-            console.error("Error creating event:", error);
+            if (error instanceof ValidationError) {
+                return res.status(401).json({ error: error.message });
+            }
             res.status(500).json({
                 error: "Failed to create event",
                 message: error.message,
@@ -161,13 +133,7 @@ export class GoogleController {
     //refresh access token using refresh token
     static async refreshToken(req: Request, res: Response) {
         try {
-            const { refresh_token } = req.body;
-
-            if (!refresh_token) {
-                return res.status(400).json({
-                    error: "refresh_token is required",
-                });
-            }
+            const refresh_token = requireString(req.body?.refresh_token, "refresh_token");
 
             const credentials = await refreshAccessToken(refresh_token);
 
@@ -179,6 +145,9 @@ export class GoogleController {
                 scope: credentials.scope,
             });
         } catch (error: any) {
+            if (error instanceof ValidationError) {
+                return res.status(400).json({ error: error.message });
+            }
             res.status(500).json({
                 error: "Failed to refresh token",
                 message: error.message,
@@ -188,20 +157,15 @@ export class GoogleController {
 
     static async revokeConnection(req: Request, res: Response) {
         try {
-            const authHeader = req.headers.authorization;
-
-            if (!authHeader || !authHeader.startsWith("Bearer ")) {
-                return res.status(401).json({
-                    error: "Authorization header with Bearer token is required",
-                });
-            }
-
-            const accessToken = authHeader.substring(7);
+            const accessToken = requireBearerToken(req.headers.authorization);
 
             const result = await revokeConnection(accessToken);
 
             res.json({ message: "Successfully revoked connection", result });
         } catch (error: any) {
+            if (error instanceof ValidationError) {
+                return res.status(401).json({ error: error.message });
+            }
             res.status(500).json({
                 error: "Failed to revoke connection",
                 message: error.message,

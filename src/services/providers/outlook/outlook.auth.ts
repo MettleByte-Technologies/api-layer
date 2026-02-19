@@ -17,13 +17,6 @@ export class OutlookOAuthService {
     this.tenantId = env.OUTLOOK_TENANT_ID;
     this.scope = env.OUTLOOK_SCOPE;
 
-    console.log("Initializing OutlookOAuthService with:");
-    console.log("Client ID:", this.clientId ? "✅ Set" : "❌ Not Set");
-    console.log("Client Secret:", this.clientSecret ? "✅ Set" : "❌ Not Set");
-    console.log("Redirect URI:", this.redirectUri ? "✅ Set" : "❌ Not Set");
-    console.log("Tenant ID:", this.tenantId);
-    console.log("Scope:", this.scope);
-
     this.httpClient = axios.create({
       baseURL: env.OUTLOOK_AUTH_BASE_URL,
       headers: {
@@ -63,14 +56,15 @@ export class OutlookOAuthService {
   // Exchange authorization code for access token
   async getAccessToken(code: string, redirectUri?: string): Promise<OutlookTokenResponse> {
     try {
-      const response = await this.httpClient.post("/token", {
+      const form = new URLSearchParams({
         client_id: this.clientId,
         client_secret: this.clientSecret,
         code,
-        redirect_uri: redirectUri,
+        redirect_uri: redirectUri || this.redirectUri,
         grant_type: "authorization_code",
         scope: this.scope,
       });
+      const response = await this.httpClient.post("/token", form);
       return response.data;
     } catch (error: any) {
       throw new Error(`Failed to get access token with client credentials: ${error.message}`);
@@ -80,15 +74,14 @@ export class OutlookOAuthService {
   //Refresh the access token using refresh token  
   async refreshAccessToken(refreshToken: string): Promise<OutlookTokenResponse> {
     try {
-      const response = await this.httpClient.post("/token",
-        {
-          client_id: this.clientId,
-          client_secret: this.clientSecret,
-          refresh_token: refreshToken,
-          grant_type: "refresh_token",
-          scope: this.scope,
-        }
-      );
+      const form = new URLSearchParams({
+        client_id: this.clientId,
+        client_secret: this.clientSecret,
+        refresh_token: refreshToken,
+        grant_type: "refresh_token",
+        scope: this.scope,
+      });
+      const response = await this.httpClient.post("/token", form);
       // const response = await axios.post(
       //   `https://login.microsoftonline.com/${this.tenantId}/oauth2/v2.0/token`,
       //   {

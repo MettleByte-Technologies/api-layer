@@ -62,11 +62,6 @@ export class GoogleCalendarService {
       params.q = getEventsRequest.q;
     }
     const response = await calendar.events.list(params);
-    console.log("List events response:", {
-      calendarId: getEventsRequest.calendarId,
-      timeMin: getEventsRequest.timeMin,  
-      timeMax: getEventsRequest.timeMax,
-    });
 
     return response.data as GetEventsResponse;
   }
@@ -97,7 +92,6 @@ export class GoogleCalendarService {
       calendarId,
       requestBody: eventData,
     });
-    console.log("Created event:", response.data);
     return response.data as CreateEventResponse;
   }
 

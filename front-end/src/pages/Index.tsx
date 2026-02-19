@@ -2,18 +2,19 @@ import { useState } from "react";
 import GoogleIntegration from "@/components/GoogleIntegration";
 import { Calendar, Mail, BarChart3 } from "lucide-react";
 import OutlookIntegration from "@/components/OutlookIntegration";
+import CalendlyIntegration from "@/components/CalendlyIntegration";
 
-type Integration = "google" | "outlook" | "hubspot";
+type Integration = "google" | "outlook" | "calendly";
 
 const integrations: { id: Integration; name: string; icon: typeof Calendar; colorClass: string; ready: boolean }[] = [
   { id: "google", name: "Google", icon: Calendar, colorClass: "bg-google text-google-foreground", ready: true },
   { id: "outlook", name: "Outlook", icon: Mail, colorClass: "bg-outlook text-outlook-foreground", ready: true },
-  { id: "hubspot", name: "HubSpot", icon: BarChart3, colorClass: "bg-hubspot text-hubspot-foreground", ready: false },
+  { id: "calendly", name: "Calendly", icon: BarChart3, colorClass: "bg-hubspot text-hubspot-foreground", ready: true },
 ];
 
 const Index = () => {
   const [active, setActive] = useState<Integration>("google");
-
+  console.log("Active integration:", active);
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
@@ -58,9 +59,7 @@ const Index = () => {
         <div className="rounded-xl border bg-card p-6 shadow-sm">
           {active === "google" && <GoogleIntegration />}
           {active === "outlook" && <OutlookIntegration />}
-          {active === "hubspot" && (
-            <p className="text-center text-muted-foreground py-12">HubSpot integration coming soon.</p>
-          )}
+          {active === "calendly" && <CalendlyIntegration />}          
         </div>
       </main>
     </div>

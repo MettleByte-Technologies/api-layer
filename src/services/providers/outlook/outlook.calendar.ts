@@ -161,10 +161,6 @@ export class OutlookCalendarService {
     event: OutlookEvent
   ): Promise<OutlookEvent> {
     try {
-        console.log("Creating event with data:", {
-            calendarId,
-            event,
-        });
       const url = calendarId === "primary" ? `/me/events` : `/me/calendars/${calendarId}/events`;
       const response = await this.httpClient.post(
         url,

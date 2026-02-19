@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { exchangeCodeForTokens } from "@/lib/google-api";
+import { exchangeCodeForTokens } from "@/lib/calendly-api";
 
-const GoogleCallback = () => {
+const CalendlyCallback = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState<"loading" | "error">("loading");
@@ -16,13 +16,14 @@ const GoogleCallback = () => {
       return;
     }
 
-    const redirectUri = `${window.location.origin}/google/callback`;
+    const redirectUri = `${window.location.origin}/calendly/callback`;
 
     exchangeCodeForTokens(code, redirectUri)
       .then((tokens) => {
         // Store tokens and redirect to main page
-        sessionStorage.setItem("google_access_token", tokens.access_token);
-        sessionStorage.setItem("google_refresh_token", tokens.refresh_token);
+        sessionStorage.setItem("calendly_access_token", tokens.access_token);
+        sessionStorage.setItem("calendly_refresh_token", tokens.refresh_token);
+        sessionStorage.setItem("calendly_owner", tokens.owner);
         navigate("/", { replace: true });
       })
       .catch((err) => {
@@ -52,10 +53,10 @@ const GoogleCallback = () => {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="text-center">
         <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-        <p className="text-muted-foreground">Connecting to Google...</p>
+        <p className="text-muted-foreground">Connecting to Calendly...</p>
       </div>
     </div>
   );
 };
 
-export default GoogleCallback;
+export default CalendlyCallback;

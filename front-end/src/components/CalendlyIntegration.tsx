@@ -1,36 +1,43 @@
 import { useState } from "react";
 import {
   getAuthUrl,
-  getCalendars,
-  getEvents,
-  createEvent,
   refreshAccessToken,
   revokeConnection,
-} from "@/lib/google-api";
+  getEventTypes,
+  listEvents,
+  createInvitee,
+  CalendlyCreateInviteePayload,
+} from "@/lib/calendly-api";
 import { Calendar, RefreshCw, List, Plus, LogIn, Copy, Check } from "lucide-react";
 
-const GoogleIntegration = () => {
+const CalendlyIntegration = () => {
   const [accessToken, setAccessToken] = useState(
-    () => sessionStorage.getItem("google_access_token") || ""
+    () => sessionStorage.getItem("calendly_access_token") || ""
   );
   const [refreshToken, setRefreshToken] = useState(
-    () => sessionStorage.getItem("google_refresh_token") || ""
+    () => sessionStorage.getItem("calendly_refresh_token") || ""
   );
   const [response, setResponse] = useState<object | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
 
-  // Create event form
-  const [eventTitle, setEventTitle] = useState("");
-  const [eventDesc, setEventDesc] = useState("");
-  const [eventStart, setEventStart] = useState("");
-  const [eventEnd, setEventEnd] = useState("");
-  const [eventAttendees, setEventAttendees] = useState("");
-  const [eventCalendarId, setEventCalendarId] = useState("");
+  // Create invitee form
+  const [eventTypeUri, setEventTypeUri] = useState("");
+  const [inviteeName, setInviteeName] = useState("");
+  const [inviteeEmail, setInviteeEmail] = useState("");
+  const [inviteeTimezone, setInviteeTimezone] = useState(
+    () => Intl.DateTimeFormat().resolvedOptions().timeZone || ""
+  );
+  const [inviteePhone, setInviteePhone] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [locationKind, setLocationKind] = useState("physical");
+  const [locationValue, setLocationValue] = useState("");
+  const [eventGuests, setEventGuests] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [timeMin, setTimeMin] = useState("");
   const [timeMax, setTimeMax] = useState("");
+  const [owner, setOwner] = useState(() => sessionStorage.getItem("calendly_owner") || "");
 
   // Get events params
   const [eventsCalendarId, setEventsCalendarId] = useState("");
@@ -41,7 +48,7 @@ const GoogleIntegration = () => {
     setLoading("connect");
     setError("");
     try {
-      const redirectUri = `${window.location.origin}/google/callback`;
+      const redirectUri = `${window.location.origin}/calendly/callback`;
       const authUri = await getAuthUrl(redirectUri);
       window.location.href = authUri;
     } catch (err: any) {
@@ -55,11 +62,11 @@ const GoogleIntegration = () => {
       const response = await revokeConnection(accessToken);
       console.log("Revoke response:", response);
       if (response) {
-        alert("Google connection revoked successfully.");
+        alert("Calendly connection revoked successfully.");
         setAccessToken("");
         setRefreshToken("");
-        sessionStorage.removeItem("google_access_token");
-        sessionStorage.removeItem("google_refresh_token");
+        sessionStorage.removeItem("calendly_access_token");
+        sessionStorage.removeItem("calendly_refresh_token");
         setResponse(null);
       }
     } catch (error) {
@@ -91,40 +98,65 @@ const GoogleIntegration = () => {
       runApi("refresh", async () => {
         const data = await refreshAccessToken(refreshToken);
         setAccessToken(data.access_token);
-        sessionStorage.setItem("google_access_token", data.access_token);
+        sessionStorage.setItem("calendly_access_token", data.access_token);
         if (data.refresh_token) {
           setRefreshToken(data.refresh_token);
-          sessionStorage.setItem("google_refresh_token", data.refresh_token);
+          sessionStorage.setItem("calendly_refresh_token", data.refresh_token);
+        }
+        if(data.owner){
+          setOwner(data.owner);
+          sessionStorage.setItem("calendly_owner", data.owner);
         }
         return data;
       });
 
-    const handleGetCalendars = () =>
-      runApi("calendars", () => getCalendars(accessToken));
+    const handleGetEventTypes = () =>{
+      console.log("Owner:", owner);
+      runApi("eventTypes", () => getEventTypes(accessToken, owner));
+    }
 
-    const handleGetEvents = () =>
-      runApi("events", () => getEvents(accessToken, eventsCalendarId || undefined, formatDateToISO(timeMin) || undefined, formatDateToISO(timeMax) || undefined));
+    const handleGetEventList = () =>{
+      console.log("Owner:", owner);
+      runApi("events", () => listEvents(accessToken, owner));
+    }
+
+    const handleCreateInvitee = () =>
+      runApi("createInvitee", async () => {
+        const payload: CalendlyCreateInviteePayload = {
+          event_type: eventTypeUri,
+          start_time: formatDateToISO(startTime),
+          invitee: {
+            name: inviteeName || undefined,
+            email: inviteeEmail,
+            timezone: inviteeTimezone,
+            text_reminder_number: inviteePhone || undefined,
+          },
+        };
+
+        const trimmedLocation = locationValue.trim();
+        if (trimmedLocation) {
+          payload.location = {
+            kind: locationKind || "physical",
+            location: trimmedLocation,
+          };
+        }
+
+        if (eventGuests) {
+          payload.event_guests = eventGuests
+            .split(",")
+            .map((g) => g.trim())
+            .filter(Boolean);
+        }
+
+        return createInvitee(accessToken, payload);
+      });
 
     const formatDateToISO = (dateString: string): string => {
       if (!dateString) return dateString;
       return new Date(dateString).toISOString();
     };
-
-
-    const handleCreateEvent = () =>
-      runApi("create", () =>
-        createEvent(accessToken, {
-          calendarId: eventCalendarId || undefined,
-          event: {
-            summary: eventTitle,
-            description: eventDesc,
-            start: { dateTime: new Date(eventStart).toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
-            end: { dateTime: new Date(eventEnd).toISOString(), timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
-            attendees: eventAttendees ? eventAttendees.split(",").map(email => ({ email: email.trim() })) : undefined,
-          }
-        })
-
-      );
+    
+    
 
     return (
       <div className="space-y-6">
@@ -174,7 +206,7 @@ const GoogleIntegration = () => {
             className="flex w-full items-center justify-center gap-2 rounded-lg bg-google px-4 py-3 text-sm font-medium text-google-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
           >
             <LogIn className="h-4 w-4" />
-            {loading === "connect" ? "Connecting..." : "Connect Google Account"}
+            {loading === "connect" ? "Connecting..." : "Connect Calendly Account"}
           </button>
         ) : (
           <button
@@ -192,12 +224,20 @@ const GoogleIntegration = () => {
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               <button
-                onClick={handleGetCalendars}
+                onClick={handleGetEventTypes}
                 disabled={!!loading}
                 className="flex items-center gap-2 rounded-lg border bg-card px-4 py-3 text-sm font-medium text-foreground hover:bg-accent transition-colors disabled:opacity-50"
               >
                 <Calendar className="h-4 w-4 text-google" />
-                {loading === "calendars" ? "Loading..." : "Get Calendars"}
+                {loading === "eventTypes" ? "Loading..." : "Get Event Types"}
+              </button>
+              <button
+                onClick={handleGetEventList}
+                disabled={!!loading}
+                className="flex items-center gap-2 rounded-lg border bg-card px-4 py-3 text-sm font-medium text-foreground hover:bg-accent transition-colors disabled:opacity-50"
+              >
+                <Calendar className="h-4 w-4 text-google" />
+                {loading === "events" ? "Loading..." : "Get Events"}
               </button>
 
               <button
@@ -209,97 +249,90 @@ const GoogleIntegration = () => {
                 {loading === "refresh" ? "Refreshing..." : "Refresh Token"}
               </button>
             </div>
+            
 
-            {/* Get Events with optional calendarId */}
-            <div className="rounded-lg border bg-card p-4 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                <List className="h-4 w-4 text-google" />
-                Get Events
-              </div>
-              <input
-                value={eventsCalendarId}
-                onChange={(e) => setEventsCalendarId(e.target.value)}
-                placeholder="Calendar ID (optional, defaults to primary)"
-                className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
-              />
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="datetime-local"
-                  value={timeMin}
-                  onChange={(e) => setTimeMin(e.target.value)}
-                  className="rounded-md border bg-background px-3 py-2 text-sm text-foreground"
-                />
-                <input
-                  type="datetime-local"
-                  value={timeMax}
-                  onChange={(e) => setTimeMax(e.target.value)}
-                  className="rounded-md border bg-background px-3 py-2 text-sm text-foreground"
-                />
-              </div>
-              <button
-                onClick={handleGetEvents}
-                disabled={!!loading}
-                className="w-full rounded-md bg-google px-3 py-2 text-sm font-medium text-google-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
-              >
-                {loading === "events" ? "Loading..." : "Fetch Events"}
-              </button>
-            </div>
-
-            {/* Create Event */}
+            {/* Create Invitee */}
             <div className="rounded-lg border bg-card p-4 space-y-3">
               <button
                 onClick={() => setShowCreateForm(!showCreateForm)}
                 className="flex w-full items-center gap-2 text-sm font-medium text-foreground"
               >
                 <Plus className="h-4 w-4 text-google" />
-                Create Event
+                Create Invitee
               </button>
               {showCreateForm && (
                 <div className="space-y-2 pt-2">
                   <input
-                    value={eventTitle}
-                    onChange={(e) => setEventTitle(e.target.value)}
-                    placeholder="Title *"
+                    value={eventTypeUri}
+                    onChange={(e) => setEventTypeUri(e.target.value)}
+                    placeholder="Event Type URI *"
                     className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
                   />
                   <input
-                    value={eventDesc}
-                    onChange={(e) => setEventDesc(e.target.value)}
-                    placeholder="Description"
+                    value={inviteeName}
+                    onChange={(e) => setInviteeName(e.target.value)}
+                    placeholder="Invitee Name"
                     className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
                   />
                   <div className="grid grid-cols-2 gap-2">
                     <input
                       type="datetime-local"
-                      value={eventStart}
-                      onChange={(e) => setEventStart(e.target.value)}
+                      value={startTime}
+                      onChange={(e) => setStartTime(e.target.value)}
                       className="rounded-md border bg-background px-3 py-2 text-sm text-foreground"
                     />
                     <input
-                      type="datetime-local"
-                      value={eventEnd}
-                      onChange={(e) => setEventEnd(e.target.value)}
+                      type="email"
+                      value={inviteeEmail}
+                      onChange={(e) => setInviteeEmail(e.target.value)}
+                      placeholder="Invitee Email *"
                       className="rounded-md border bg-background px-3 py-2 text-sm text-foreground"
                     />
                   </div>
                   <input
-                    value={eventAttendees}
-                    onChange={(e) => setEventAttendees(e.target.value)}
-                    placeholder="Attendees (comma-separated emails)"
+                    value={inviteeTimezone}
+                    onChange={(e) => setInviteeTimezone(e.target.value)}
+                    placeholder="Timezone * (e.g. America/New_York)"
                     className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
                   />
                   <input
-                    value={eventCalendarId}
-                    onChange={(e) => setEventCalendarId(e.target.value)}
-                    placeholder="Calendar ID (optional)"
+                    value={inviteePhone}
+                    onChange={(e) => setInviteePhone(e.target.value)}
+                    placeholder="Text reminder number (optional, e.g. +1 888-888-8888)"
+                    className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      value={locationKind}
+                      onChange={(e) => setLocationKind(e.target.value)}
+                      placeholder="Location kind (e.g. physical)"
+                      className="rounded-md border bg-background px-3 py-2 text-sm text-foreground"
+                    />
+                    <input
+                      value={locationValue}
+                      onChange={(e) => setLocationValue(e.target.value)}
+                      placeholder="Location (optional)"
+                      className="rounded-md border bg-background px-3 py-2 text-sm text-foreground"
+                    />
+                  </div>
+                  <input
+                    value={eventGuests}
+                    onChange={(e) => setEventGuests(e.target.value)}
+                    placeholder="Guest emails (comma-separated, optional)"
                     className="w-full rounded-md border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
                   />
                   <button
-                    onClick={handleCreateEvent}
-                    disabled={!!loading || !eventTitle || !eventStart || !eventEnd}
+                    onClick={handleCreateInvitee}
+                    disabled={
+                      !!loading ||
+                      !eventTypeUri ||
+                      !startTime ||
+                      !inviteeEmail ||
+                      !inviteeTimezone
+                    }
                     className="w-full rounded-md bg-google px-3 py-2 text-sm font-medium text-google-foreground hover:opacity-90 transition-opacity disabled:opacity-50"
                   >
-                    {loading === "create" ? "Creating..." : "Create Event"}
+                    {loading === "createInvitee" ? "Creating..." : "Create Invitee (Only paid accounts) "}
                   </button>
                 </div>
               )}
@@ -333,4 +366,4 @@ const GoogleIntegration = () => {
     );
   };
 
-  export default GoogleIntegration;
+  export default CalendlyIntegration;
