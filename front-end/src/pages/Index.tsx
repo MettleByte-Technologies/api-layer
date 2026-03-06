@@ -1,15 +1,17 @@
 import { useState } from "react";
 import GoogleIntegration from "@/components/GoogleIntegration";
-import { Calendar, Mail, BarChart3 } from "lucide-react";
+import { Calendar, Mail, BarChart3, FileSignature } from "lucide-react";
 import OutlookIntegration from "@/components/OutlookIntegration";
 import CalendlyIntegration from "@/components/CalendlyIntegration";
+import DocuSignIntegration from "@/components/DocuSignIntegration";
 
-type Integration = "google" | "outlook" | "calendly";
+type Integration = "google" | "outlook" | "calendly" | "docusign";
 
 const integrations: { id: Integration; name: string; icon: typeof Calendar; colorClass: string; ready: boolean }[] = [
   { id: "google", name: "Google", icon: Calendar, colorClass: "bg-google text-google-foreground", ready: true },
   { id: "outlook", name: "Outlook", icon: Mail, colorClass: "bg-outlook text-outlook-foreground", ready: true },
   { id: "calendly", name: "Calendly", icon: BarChart3, colorClass: "bg-hubspot text-hubspot-foreground", ready: true },
+  { id: "docusign", name: "DocuSign", icon: FileSignature, colorClass: "bg-docusign text-docusign-foreground", ready: true },
 ];
 
 const Index = () => {
@@ -35,13 +37,12 @@ const Index = () => {
                 key={item.id}
                 onClick={() => item.ready && setActive(item.id)}
                 disabled={!item.ready}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${
-                  isActive
+                className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all ${isActive
                     ? `${item.colorClass} shadow-sm`
                     : item.ready
-                    ? "bg-secondary text-secondary-foreground hover:bg-accent"
-                    : "bg-muted text-muted-foreground cursor-not-allowed opacity-60"
-                }`}
+                      ? "bg-secondary text-secondary-foreground hover:bg-accent"
+                      : "bg-muted text-muted-foreground cursor-not-allowed opacity-60"
+                  }`}
               >
                 <Icon className="h-4 w-4" />
                 {item.name}
@@ -59,7 +60,8 @@ const Index = () => {
         <div className="rounded-xl border bg-card p-6 shadow-sm">
           {active === "google" && <GoogleIntegration />}
           {active === "outlook" && <OutlookIntegration />}
-          {active === "calendly" && <CalendlyIntegration />}          
+          {active === "calendly" && <CalendlyIntegration />}
+          {active === "docusign" && <DocuSignIntegration />}
         </div>
       </main>
     </div>

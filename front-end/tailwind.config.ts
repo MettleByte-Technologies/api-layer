@@ -59,6 +59,10 @@ export default {
           DEFAULT: "hsl(var(--hubspot))",
           foreground: "hsl(var(--hubspot-foreground))",
         },
+        docusign: {
+          DEFAULT: "hsl(var(--docusign))",
+          foreground: "hsl(var(--docusign-foreground))",
+        },
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",

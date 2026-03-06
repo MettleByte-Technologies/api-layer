@@ -20,6 +20,12 @@ export const env = {
   CALENDLY_CLIENT_ID: process.env.CALENDLY_CLIENT_ID || "",
   CALENDLY_CLIENT_SECRET: process.env.CALENDLY_CLIENT_SECRET || "",
   CALENDLY_REDIRECT_URI: process.env.CALENDLY_REDIRECT_URI || "",
+  DOCUSIGN_INTEGRATION_KEY: process.env.DOCUSIGN_INTEGRATION_KEY || "",
+  DOCUSIGN_SECRET_KEY: process.env.DOCUSIGN_SECRET_KEY || "",
+  DOCUSIGN_ACCOUNT_ID: process.env.DOCUSIGN_ACCOUNT_ID || "",
+  DOCUSIGN_REDIRECT_URI: process.env.DOCUSIGN_REDIRECT_URI || "",
+  DOCUSIGN_WEBHOOK_SECRET: process.env.DOCUSIGN_WEBHOOK_SECRET || "",
+  DOCUSIGN_FORWARD_URL: process.env.DOCUSIGN_FORWARD_URL || "",
 };
 
 // Validate required environment variables on startup

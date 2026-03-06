@@ -8,6 +8,7 @@ import GoogleCallback from "./pages/GoogleCallback";
 import NotFound from "./pages/NotFound";
 import OutlookCallback from "./pages/OutlookCallback";
 import CalendlyCallback from "./pages/CalendlyCallback";
+import DocuSignCallback from "./pages/DocuSignCallback";
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/google/callback" element={<GoogleCallback />} />
           <Route path="/outlook/callback" element={<OutlookCallback />} />
           <Route path="/calendly/callback" element={<CalendlyCallback />} />
+          <Route path="/docusign/callback" element={<DocuSignCallback />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

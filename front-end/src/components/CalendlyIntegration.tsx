@@ -195,6 +195,22 @@ const CalendlyIntegration = () => {
                 </button>
               </div>
             </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-foreground">Owner</label>
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={owner}
+                  className="flex-1 rounded-lg border bg-secondary/50 px-3 py-2 text-sm font-mono text-foreground"
+                />
+                <button
+                  onClick={() => handleCopy(owner, "owner")}
+                  className="rounded-lg border bg-card px-3 py-2 text-muted-foreground hover:bg-secondary transition-colors"
+                >
+                  {copied === "owner" ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
